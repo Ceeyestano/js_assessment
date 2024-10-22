@@ -5,14 +5,11 @@ const HOLE = "O";
 const GRASS = "░";
 const PLAYER = "*";
 
-
 // WIN / LOSE / OUT / QUIT messages constants
-const WIN = "Congratulations! You found the carrot!";                                         // customise message when player wins
-const LOST = "Sorry! You fell down into a hole. Retry again?";                               // customise message when player lose
-const OUT = "Sorry! You went out of bounds. Retry again?";                                  // customise message when player is out of bounds (lose)
-const QUIT = "Game ended."                                                                 // customise message when player quits
-
-
+const WIN = "Congratulations! You found the carrot!";                     // customise message when player wins
+const LOST = "Sorry! You fell down into a hole. Retry again?";            // customise message when player loses
+const OUT = "Sorry! You went out of bounds. Retry again?";                // customise message when player is out of bounds (lose)
+const QUIT = "Game ended.";                                               // customise message when player quits and exits the game
 
 class Field {
   constructor(field = [[]]) {
@@ -25,7 +22,6 @@ class Field {
 
   // Creates game loop
   play() {
-    const userInput = String(input).toLowerCase();
     let gameState = true;
     while (gameState) {
       this.print();
@@ -38,36 +34,33 @@ class Field {
       ) {
         console.log(OUT);
         gameState = false;
-        return;
       } else if (this.field[this.locationY][this.locationX] === CARROT) {
         console.log(WIN);
         gameState = false;
-        return;
       } else if (this.field[this.locationY][this.locationX] === HOLE) {
         console.log(LOST);
         gameState = false;
-        return;
-      } else if (userInput === "q"){
-        this.quitGame();
-
-      
-      // Update the current location on the map
-      this.field[this.locationY][this.locationX] = PLAYER;
+      } else {
+        // Update the current location on the map
+        this.field[this.locationY][this.locationX] = PLAYER;
+      }
     }
   }
 
-  // Shows field.
-  print(); {
+  // Shows field
+  print() {
     const displayString = this.field.map(row => {
-        return row.join('');
-      }).join('\n');
+      return row.join('');
+    }).join('\n');
     console.log(displayString);
   }
 
-  //Ask for input
-  askQuestion(); {
-    const move = prompt("Which way (u, d, l, r)? ").toUpperCase();
-    if (move === "R") {
+  // Ask for input
+  askQuestion() {
+    const move = prompt("Which way (u, d, l, r, q to quit)? ").toUpperCase();
+    if (move === "Q") {
+      this.quitGame();
+    } else if (move === "R") {
       this.locationX += 1;
     } else if (move === "L") {
       this.locationX -= 1;
@@ -76,12 +69,13 @@ class Field {
     } else if (move === "D") {
       this.locationY += 1;
     } else {
-      console.log("Please enter the U, D, L, or R key.");
+      console.log("Please enter the U, D, L, R, or Q key.");
     }
   }
 
-    static generateField(height, width, percent) {
-    const HOLENum = (height * width) * percent;
+  // Generate field
+  static generateField(height, width, percent) {
+    const HOLENum = Math.floor(height * width * percent);
     const field = [];
     for (let i = 0; i < height; i++) {
       field.push([]);
@@ -97,42 +91,27 @@ class Field {
 
     let randomCol = Math.floor(Math.random() * height);
     let randomRow = Math.floor(Math.random() * width);
-    
+
     while (randomCol === 0 && randomRow === 0) {
-         randomCol = Math.floor(Math.random() * height);
-         randomRow = Math.floor(Math.random() * width);
+      randomCol = Math.floor(Math.random() * height);
+      randomRow = Math.floor(Math.random() * width);
     }
-
-    let genField=1;
-    console.log('1 - Small');
-    console.log('2 - Normal');
-    console.log('3 - Large');
-    const size = prompt('Choose the size of the map: ');
-    switch(size) {
-    case '1':
-    genField = Field.generateField(8,8);
-    break;
-    case '2':
-    genField = Field.generateField(16,16);
-    break;
-    case '3':
-    genField = Field.generateField(32,32);
-    break;
-    default:
-    console.log('Invalid input. The map is normal by default.')
-    genField = Field.generateField(16,16);
-    break;
-}
-
-    // Dynamically generate % of holes
-    var holeOrEmptyField = Math.random() < holesPercent ? 'O' : '░';
-    arr[y][x] = holeOrEmptyField;
 
     field[randomCol][randomRow] = CARROT;
     return field;
   }
 
+  // Quit game
+  quitGame() {
+    console.log(QUIT);
+    process.exit();
+  }
 }
 
-const myField = new Field(Field.generateField(16, 16, .2));
+// Prompt user for field size and hole percentage (adjust difficulty level)
+const height = parseInt(prompt("Enter the field height: "));
+const width = parseInt(prompt("Enter the field width: "));
+const percent = parseFloat(prompt("Enter the hole percentage (e.g., 0.2 for 20%): "));
+
+const myField = new Field(Field.generateField(height, width, percent));
 myField.play();
